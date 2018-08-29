@@ -7,8 +7,8 @@ Neurofeedback tools for Matlab
 
 [Tibor Auer](https://github.com/tiborauer)
   - Biomedizinische NMR Forschungs GmbH, Max-Planck Institute for Biophysical Chemistry
-  - MRC Cognition and Brain Sciences Unit
-  - Department of Psychology Royal Holloway University of London
+  - MRC Cognition and Brain Sciences Unit, University of Cambridge
+  - Department of Psychology, Royal Holloway University of London
 
 ## References
 [Auer et al., 2015, Training Efficiency and Transfer Success in an Extended Real-time Functional MRI Neurofeedback Training of the Somatomotor Cortex of Healthy Subjects](http://doi.org/10.3389/fnhum.2015.00547)
