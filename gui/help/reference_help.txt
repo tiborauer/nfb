@@ -1,0 +1,12 @@
+Reference function help text
+
+
+if I find some time, I will fill this box up with more information about reference function design in the neurofeedback toolbox than you could possibly care ...\
+
+
+in the mean time if you have any questions, just ask ...
+
+tauer@gwdg.de
+
+
+

@@ -1,0 +1,91 @@
+% Configuration file for Matlab neurofeedback toolbox
+% This is ignored (Matlab comment style)
+% You MUST separate parameters and values by tabs (NOT spaces)
+
+[TIMING]
+% number of volumes to be analyzed
+volumes[n]=69
+% delay per volume in seconds (set this to 0 for real experiments where no delay is required)
+simul[n]=0
+% timeout in seconds
+timeout[n]=60
+% repetition time in seconds
+TR[n]=2
+
+[DATA]
+% net - TCP, watch directory (where Analyze files are put during analysis)
+watch_dir[s]=net
+% transfer directory (where Analyze files are transfered after analysis)
+tr_dir[s]=none
+% ROI definition mode
+roi_def[s]=Nifti
+% Target and background ROI files (without extension) and weights
+no_roi[n]=1
+bg_roi[s]=/imaging/ta02/NFB/sample/vol_6306/roi_data/bg
+targ_roi1[s]=/imaging/ta02/NFB/sample/vol_6306/roi_data/sma_l
+w_roi1[n]=1
+% Flip L/R of ROI-file(s) (0 ... no, 1 ... yes)
+flip_lr[n]=1
+% Flip slice order of ROI-file(s) (0 ... no, 1 ... yes)
+flip_slice[n]=0
+% full path to Presentation output IP or file (empty for none)
+outfile[s]=172.31.25.14
+% output directory
+output_dir[s]=/imaging/ta02/NFB/sample/vol_6351/loc_out_data
+
+[REFERENCE]
+% reference function type
+ref_file[s]=/imaging/ta02/NFB/sample/Session_Paradigm.par
+% using MVPC
+mv_MVPC[n]=0
+% Training directory
+mv_TrainData[s]=D:\tauer\NFB\vol_4728\localizer
+% Training reference directory (TBV out)
+mv_TrainRef[s]=D:\tauer\NFB\vol_4728\localizer_out
+% MAT-file with the Trained Model
+mv_Train[s]=D:\tauer\NFB\vol_4728\MVPC.mat
+% Model: NN, SVM
+mv_Model[s]=SVM
+% Using Percent Signal Change
+mv_Percent[n]=1
+% Using Background: Not - 0, ROI to substract - 1, Voxels - 2
+mv_bg[n]=2
+
+[PREPROCESS]
+% motion correction: No - 0, SPM Realign - 2
+moco_yn[n]=2
+moco_ref[s]=/imaging/ta02/NFB/sample/vol_6306/loc/Analyze00001.hdr
+% need for motion corrected files: Yes - 0, No - 1
+moco_del[n]=1
+% Gaussian spatial smoothing in mm (0 for none)
+smooth[n]=0
+% Low-pass filter the mean time series (0 ... none, 1 ... simple weighting of current and 2 previous timepoints) 
+lp_filter[n]=0
+
+[FEEDBACK]
+% method: Linear - 1, Breakpoints - 2
+method[n]=2
+% shaping: 2-up-1-down
+shaping_yn[n]=0
+% max. positive target signal change (in percent)
+max_pos[n]=2
+% max. negative target signal change (in percent)
+max_neg[n]=-2
+% use brakepoints or not
+break_yn[n]=1
+% percental chanes (in % signal) to reach the higher rise
+break_low[n]=0.25
+% percental chanes (in % signal) to reach the slower rise in the extreme part
+break_high[n]=1.5
+% ratio of the middle part to the whole slope
+sl_middle[n]=0.05
+% ratio of one extremity to the whole slope
+sl_extremity[n]=0.1
+
+[MISC]
+% plot type (no; diff ... plot difference between ROIs; raw ... plot the raw signal intensity in target and background ROI)
+plot_type[s]=raw
+% if set to 0, program will exit just before the first volume is being read (this is usefull for checking the config file prior to an experiment)
+run[n]=1
+% run evaluation after experiment?
+eval[n]=1

@@ -1,0 +1,10 @@
+[PARADIGM]
+ref_GLM[s]=block
+% Conditions
+Conditions[e]={ 'A';'D';'FB';'NE' }
+% Condition Duration (s) in mathing order
+ConditionTimes[e]=[12 0 6 1]
+% Condition Sequence
+ConditionSequence[e]={'FB'; 'NE'; 'A'; 'FB'; 'NE'; 'A'; 'FB'; 'NE'; 'A'; 'FB'; 'NE'; 'A'; 'FB'; 'NE'}
+% ISI (s)
+ISI[e]=[0; 11; 0; 0; 11; 0; 0; 11; 0; 0; 11; 0; 0; 11;]
