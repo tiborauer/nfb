@@ -1,7 +1,10 @@
 function out = roi_glm(varargin)
+% nEV: number of EV to convolve
 % plot: 0 - no plot; 1 - plot;
 % fit: 0 - no fit; 1 - delay; 2 - full fit;
 % data: 0 - no bg; 1 - bg;
+nEV = cell_index(varargin,'nEV');
+if nEV, nEV = varargin{nEV+1}; end
 tr = cell_index(varargin,'TR');
 if tr, tr = varargin{tr+1}; end
 pl = cell_index(varargin,'plot');
@@ -31,12 +34,13 @@ if ischar(varargin{2})
 else
     des = varargin{2};
 end
-nEV = size(des,2);
-switch nEV
+switch size(des,2)
     case 1
+        nEVSig = 1;
         c = 1;
     otherwise
-        c = zeros(nEV,1);
+        nEVSig = 2;
+        c = zeros(size(des,2),1);
         c(1:2) = [1 -1];
 end
 
@@ -54,60 +58,75 @@ switch hf
         out.stat.delay = NaN;
     case 0 % no fit
         for i = 1:nEV
-            hrf(:,i) = spm_bfhrf(des(:,i), 22, 1, 2);
+            des(:,i) = spm_bfhrf(des(:,i), 28, 14, 2);
         end
+        hrf = des;
         out.stat.delay = 6;
     case 1 % delay fit
         D_DELAY = 3;
         r_delay = 6-D_DELAY:6+D_DELAY;
         s = [];
         for i = r_delay
-            hrf = spm_bfhrf(des, 22, 1, 2, i);
+            for i = 1:nEV
+                des(:,i) = spm_bfhrf(des(:,i), 28, 14, 2);
+            end
+            hrf = des;
             X=[hrf ones(numel(hrf),1)];
 
             b=X\data;
             s(end+1) = norm(data-X*b);
         end
         out.stat.delay = r_delay(s==min(s));
-        hrf = spm_bfhrf(des, 22, 1, 2, out.stat.delay);
+        for i = 1:nEV
+            des(:,i) = spm_bfhrf(des(:,i), 28, 14, 2);
+        end
+        hrf = des;
     case 2 % full fit
-        [hrf out.stat.r out.stat.p] = hrf_fit(data,des);
+        [hrf, out.stat.r, out.stat.p] = hrf_fit(data,des); % TODO: take nEV into account
         out.stat.delay = mean(out.stat.p(:,1));
 end
 
 X=[hrf ones(size(hrf,1),1)];
+Y = data;
 
-b=X\data;
-pred=X(:,1:nEV)*b(1:nEV);
-predEV=X(:,1:nEV).*repmat(b(1:nEV)',[size(X,1),1]);
-base = data-pred;
-pred=X*b;
-res = data-pred;
-se = std(data)/sqrt(numel(data)-1-numel(b));
+beta=X\Y;
+predSig=X(:,1:nEVSig).*repmat(beta(1:nEVSig,:)',[size(X,1),1]);
+predAll=X(:,1:end-1)*beta(1:end-1,:);
+base = Y-predAll;
+predAll=X*beta;
+res = Y-predAll;
+se = std(res)/sqrt(numel(Y)-1-numel(beta));
 
 if pl
     figure('Name',titlestr);
     subplot(2,1,1);
-    plot(data,'LineWidth',2)
+    plot(data,'LineWidth',2);
     hold on
-    plot(pred,'r','LineWidth',2)
-    plot(base,'k','LineWidth',2)
+    plot(predSig,'r','LineWidth',2);
+    plot(res,'k','LineWidth',2);
     hold off
-    subplot(2,1,2);
-    plot(res,'k','LineWidth',2)
+    subplot(2,1,2); 
+    hold on;
+    plot(predAll,'r','LineWidth',2);
+    plot(base,'k','LineWidth',2);
+    hold off
+end
+
+if ~nEV
+    nEV = size(des,2);
 end
 
 out.plot.data = data;
-out.plot.pred = pred;
+out.plot.pred = predSig;
 out.plot.base = base;
 out.plot.res = res;
-out.stat.beta = b(1:nEV);
-out.stat.b0 = b(end);
-out.stat.con = b(1:nEV)'*c;
+out.stat.beta = beta(1:nEV);
+out.stat.b0 = beta;
+out.stat.con = beta(1:nEV)'*c(1:nEV);
 out.stat.se = se;
-out.stat.t = b(1)/se;
-out.stat.CNR = range(pred)/std(res);
+out.stat.t = out.stat.con/se;
+out.stat.CNR = range(predSig)/std(res);
 out.stat.tSNR = mean(data)/std(res);
-out.stat.PSC = out.stat.beta./abs(out.stat.beta).*(range(predEV)'/mean(base)*100);
-out.stat.ePSC = out.stat.beta/b(end)*100;
+out.stat.PSC = out.stat.beta(1:nEVSig)./abs(out.stat.beta(1:nEVSig)).*(range(predSig)'/mean(base)*100);
+out.stat.ePSC = out.stat.beta/beta(end)*100;
 end

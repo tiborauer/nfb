@@ -21,7 +21,7 @@ end
 
 if n == 1
 	% for the first block the first scan will be considered as base
-% 	result.internal.PSC = zeros(1,1+logical(bg_data));
+	result.internal.PSC = zeros(1,1+logical(bg_data));
     result.internal.base = NaN; %result.ts(1,5);
 	result.internal.bgbase = NaN; %result.ts(1,6);
 end
@@ -30,8 +30,12 @@ end
 %% Normalization
 if params.reference.norm_stop
     % Collect data
-    moco = params.reference.moco_par(params.reference.norm_start:params.reference.norm_stop,:);
-    moco = moco - repmat(mean(moco),[size(moco,1),1]);
+    if rtconfig.preprocess.moco_yn
+        moco = params.reference.moco_par(params.reference.norm_start:params.reference.norm_stop,:);
+        moco = moco - repmat(mean(moco),[size(moco,1),1]);
+    else
+        moco = [];
+    end
     X = horzcat(params.reference.X(params.reference.norm_start:params.reference.norm_stop,:),...
         moco);
     Y = result.ts(params.reference.norm_start:params.reference.norm_stop,5);
@@ -39,30 +43,36 @@ if params.reference.norm_stop
         Y = horzcat(Y,result.ts(params.reference.norm_start:params.reference.norm_stop,6));
     end
     
+    % which EV
+    ref = sum(params.reference.vec.reference(params.reference.norm_start:params.reference.norm_stop));
+    ref = ref/(abs(ref));
+    ref = (-ref+3)/2;
+    
     % Perform
-    nEV = size(X,2);
+    nEV = size(params.reference.X,2)-1; % Fb is not included
     X = horzcat(X, ones(size(X,1),1));
     warning('off','MATLAB:rankDeficientMatrix');
     beta = X\Y;
     warning('on','MATLAB:rankDeficientMatrix');
-    pred=X(:,1:nEV)*beta(1:nEV,:);
-    base = Y-pred;
+%     predSignal=X(:,1:nEV)*beta(1:nEV,:);
+    predSignal=X(:,ref)*beta(ref,:);
+    predAll=X(:,1:end-1)*beta(1:end-1,:);
+    base = Y-predAll;
     mbase = mean(base);
-    pred=X*beta;
     
-    ref = sum(params.reference.vec.reference(params.reference.norm_start:params.reference.norm_stop));
-    ref = ref/(abs(ref));
-    ref = (-ref+3)/2;
-    c = zeros(1,nEV-1);
+    
+    c = zeros(1,nEV);
 %     c(3) = -1; % vs. NE
     c(ref) = 1;
     
-    beta = (beta(1:nEV-1,:)'*c')';    
-    result.internal.PSC = beta./abs(beta).*(range(pred)./mbase*100);
+    beta = (beta(1:nEV,:)'*c')';    
+    result.internal.PSC = beta./abs(beta).*(range(predSignal)./mbase*100);
     result.internal.base = mbase(1);
     if bg_data
         result.internal.bgbase = mbase(2);
     end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Test only %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%     result.internal.PSC = [params.reference.norm_start/50-2 0];
 end
 
 if (n < rtconfig.timing.volumes) && params.reference.vec.fb(n+1) && isfield (result.internal,'PSC')

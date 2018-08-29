@@ -33,8 +33,6 @@ plot_ind = (n-1)*rtconfig.timing.ndt+1:n*rtconfig.timing.ndt;
 
 nr = numel(results);
 
-axes(ts_fig.axes);
-
 % obtain the previous data from the plots
 for i = 1:ts_fig.np
     ydata(:,i) = get(ts_fig.(['p' int2str(i)]), 'YData');
@@ -70,7 +68,7 @@ ydata(plot_ind,nr+1) = nfb_combine(meas,ROI);
 outres = round(nfb_combine(outres,ROI));
 perc_sig = nfb_combine(perc_sig,ROI);
 
-title(sprintf('Timepoint: %s   Color: %s   Percent Signal: %s',...
+title(ts_fig.axes,sprintf('Timepoint: %s   Color: %s   Percent Signal: %s',...
     int2str(n),int2str(outres),num2str(perc_sig,3)),...
     'FontSize',16,'FontWeight','bold');
 
@@ -90,12 +88,11 @@ end
 
 % change Meas color according to the ROI selection
 if n > 1 && ~ROI_CHNG
-    hold on;
     for ir = 1:nr
         col(ir,:) = get(ts_fig.(['p' int2str(ir)]), 'Color');
     end
     col = nfb_combine(col,abs(ROI));
-    plot(plot_ind,ydata(plot_ind,nr+1),'LineWidth',3.5,'Color',col);
+    set(ts_fig.(['p' int2str(nr+1)]), 'YData', ydata(:,nr+1));
 end
 
 % rescale the axes (5 units for margin)

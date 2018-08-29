@@ -1,13 +1,24 @@
-function [v P2] = spm_realign_fast(in,par)
+function [v, P2] = spm_realign_fast(in,par)
 
 if ischar(in)
-    P2 = spm_vol(in);
+    switch in(end-2:end)
+        case {'hdr' 'img' 'nii'}
+            P2 = spm_vol(in);
+        case 'dcm'
+            P2 = dicom_hdr(in); 
+            P2.dim = P2.Dimensions;
+            P2.dat = dicom_img(in);
+    end
+    
 else
     P2 = in;
     P2.dim = size(in.dat);
 end
 
-flags = struct('fwhm',5,'interp',2,'mask',1,'write',par.write);
+flags = par.flags;
+
+flags.write = par.write;
+flags.mask = 1;
 
 mat1 = par.mat1;
 A0 = par.A0;
@@ -16,7 +27,7 @@ x1 = par.x1;
 x2 = par.x2;
 x3 = par.x3;
 deg = par.deg;
-lkp = par.lkp;
+lkp = par.flags.lkp;
 
 % -----------------------------------------------------------------------
 V  = smooth_vol(P2,flags.interp,flags.fwhm);
@@ -36,7 +47,7 @@ for iter=1:64,
 	soln       = (A'*A)\(A'*b1);
  	p          = [0 0 0  0 0 0  1 1 1  0 0 0];
 	p(lkp)     = p(lkp) + soln';
-	P2.mat   = spm_matrix(p)\P2.mat;
+	P2.mat     = spm_matrix(p)\P2.mat;
 	pss        = ss;
 	ss         = sum(b1.^2)/length(b1);
 	if (pss-ss)/pss < 1e-8 && countdown == -1, % Stopped converging.
@@ -63,7 +74,6 @@ if flags.mask
 end;
 
 [x1,x2] = ndgrid(1:P2.dim(1),1:P2.dim(2));
-
 d     = [flags.interp*[1 1 1]' [0 0 0]'];
 if isfield(P2,'fname')
     C  = spm_bsplinc(P2,d);

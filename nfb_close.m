@@ -26,7 +26,7 @@ end
 function doClose(msg,toClose)
 global params;
 
-if isstruct(params)
+if isstruct(params) && isfield(params,'files')
     save(fullfile(fileparts(params.files.logfile),'params.mat'),'params');
 end
 
@@ -68,6 +68,9 @@ if isstruct(params)
         datestr(clock),etime(clock,params.clocks.rt));
     path_remove;
     cd(params.path.start_dir);
+    for w = 1:numel(params.warnings)
+        warning(params.warnings(w));
+    end
     clear global params CANCEL PAUSE NFB_ROOTDIR NFB_VER ROI ROI_CHNG;
 else
     clear global params;

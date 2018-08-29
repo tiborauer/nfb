@@ -37,6 +37,12 @@ try
         case 0
             disp('Passed all sanity checks. Proceeding with analysis.');
     end
+    
+    inp = inputdlg('Last Name (CBU*)','',1,{'PHANTOM'});
+    params.data.LastName = inp{1};
+    inp = inputdlg('Patient ID (MR*)','',1,{'RT_TEST'});
+    params.data.ID = inp{1};
+    
     % some variables get short alias
     volumes = rtconfig.timing.volumes;
     timeout = rtconfig.timing.timeout;
@@ -83,7 +89,7 @@ try
         elseif exist(rtconfig.data.watch_dir,'dir')
             params.data.watch = rtconfig.data.watch_dir;
             fprintf('Now changing working directory to %s\n',params.data.watch);
-            cd(params.data.watch);
+%             cd(params.data.watch);
         end
     else
         fprintf('Now processing files in directory %s\n',params.path.start_dir);
@@ -96,8 +102,19 @@ try
     
     if moco
         moco_ref = rtconfig.preprocess.moco_ref;
+        
+        % initialize spm_realign in case of external reference
+        if ischar(moco_ref) && ~strcmp(moco_ref,'first') 
+            if exist(moco_ref,'file')
+                fprintf('Initialize motion correction using\n%s as reference scan...', moco_ref);
+                moco_ref = spm_realign_init(moco_ref);
+                moco_ref.write = ~rtconfig.preprocess.moco_del; % moco_del
+                fprintf('Done!\n');
+            else
+                error('ERROR: Motion correction reference scan %s does not exist!\n', moco_ref);
+            end
+        end
     end
-    
     params.clocks.exp = clock;
     save(fullfile(out_dir,'params.mat'),'params');
     
@@ -134,10 +151,11 @@ try
             if strcmp(rtconfig.data.watch_dir,'net')
                 [epi_hdr, current_epi, status, par] = nfb_ReadVol(n,moco,moco_ref,moco_del);
             else
-                [epi_hdr, current_epi, status, par] = nfb_ReadVol_NW(n,timeout,moco,moco_ref,moco_del);
+%                 [epi_hdr, current_epi, status, par] = nfb_ReadVol_NW(n,timeout,moco,moco_ref,moco_del);
+                [epi_hdr, current_epi, status, par] = nfb_ReadVol_dcm(n,timeout,moco,moco_ref,moco_del);
             end
             if status
-                % SPM Realign Inittime
+                % SPM Realign Init
                 if isstruct(par)
                     moco_ref = par;
                     % moco-parameters from SPM Realign
@@ -150,7 +168,8 @@ try
             if strcmp(rtconfig.data.watch_dir,'net')
                 [epi_hdr, current_epi, status] = nfb_ReadVol(n,moco);
             else
-                [epi_hdr, current_epi, status] = nfb_ReadVol_NW(n,timeout,moco);
+%                 [epi_hdr, current_epi, status] = nfb_ReadVol_NW(n,timeout,moco);
+                [epi_hdr, current_epi, status, par] = nfb_ReadVol_dcm(n,timeout,moco);
             end
         end
         if ~status && etime(clock,params.clocks.volume) > timeout
@@ -251,6 +270,8 @@ try
                 spm_conv_vol(current_epi,smoothed_epi,x_par,y_par,z_par,-[i_par,j_par,k_par]);
                 current_epi = smoothed_epi;
             end
+            
+%             nfb_epi(:,:,:,n) = current_epi;
             %%%%%%%%%%%%%%%%%%%%% DATA READ %%%%%%%%%%%%%%%%%%%%%%%%
             
             % set normalisation

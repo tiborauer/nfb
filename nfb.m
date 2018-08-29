@@ -13,7 +13,7 @@ else
     rtf = nfb_open(rtf);
 end
 
-cd(fullfile(fileparts(which('nfb.m')),'gui'));
+% cd(fullfile(fileparts(which('nfb.m')),'gui'));
 if ~isempty(rtf)
     gui_main_menu(1,'file', rtf);
 else

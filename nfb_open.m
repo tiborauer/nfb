@@ -25,7 +25,7 @@ run(fullfile(params.path.nfb_rootdir, 'include','path_add'));
 params.path.req{3} = fullfile(params.path.nfb_rootdir, 'include', 'net_data');
 params.path.req{4} = fullfile(params.path.nfb_rootdir, 'include', 'net_data', 'tcpudpip');
 params.path.req{5} = fullfile(params.path.nfb_rootdir, 'include', 'spm_realign');
-params.path.req{6} = fullfile(params.path.nfb_rootdir, 'include', 'spm_realign', 'spm');
+%params.path.req{6} = fullfile(params.path.nfb_rootdir, 'include', 'spm_realign', 'spm');
 params.path.req{7} = fullfile(params.path.nfb_rootdir, 'include', 'roi');
 params.path.req{8} = fullfile(params.path.nfb_rootdir, 'gui');
 params.path.req{9} = fullfile(params.path.nfb_rootdir, 'presentation');
@@ -93,4 +93,7 @@ end
 % CBSU
 opengl software;
 
+% warnings
+params.warnings(1) = warning('error', 'images:dicomparse:suspiciousFile');
+params.warnings(2) = warning('error', 'images:dicomparse:shortImport');
 end

@@ -1,9 +1,9 @@
-function r = spm_realign_eval(par,P2,v,img)
+function r = spm_realign_eval(par,P2,v)
 qq = spm_imatrix(P2.mat/par.mat1);
 r = qq(1:6);
 r(7) = sqrt(sum(r.^2));
 
-if img
+if nargin > 2
     figure(1)
     if isfield(P2,'fname')
         a1 = spm_read_vols(P2);

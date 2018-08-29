@@ -1,6 +1,6 @@
 function [out sanity] = nfb_reference(ini)
 
-dt = 0.1; % temporal resolution
+dt = 0.01; % temporal resolution
 
 %% Read imput
 if ischar(ini)

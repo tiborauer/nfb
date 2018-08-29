@@ -97,7 +97,8 @@ if ~strcmp(rtconfig.misc.plot_type,'no')
         end
         yt(ir) = ir*DIST;
     end
-    ts_fig.(['p' int2str(nr+1)]) = plot(1:timepoints,yd,'-k','LineWidth',3.5, 'Visible', 'off');
+    ts_fig.(['p' int2str(nr+1)]) = plot(1:timepoints,yd,'LineWidth',3.5,...
+        'Color',nfb_combine(ts_fig.colors(1:nr,:),abs(ROI)));
     ytl{nr+1} = 'Measured';
     yt(nr+1) = (nr+1)*DIST;
     ts_fig.np = nr+1; % number of plots
