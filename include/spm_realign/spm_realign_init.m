@@ -18,7 +18,7 @@ end
 
 flags = spm_get_defaults('realign.estimate');
 flags.rtm = 0;
-flags.lkp = 1:6; 
+flags.lkp = 1:6;
 
 skip = sqrt(sum(P1.mat(1:3,1:3).^2)).^(-1)*flags.sep;
 d    = P1.dim(1:3);                                                                                                                        

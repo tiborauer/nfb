@@ -57,6 +57,7 @@ rtf = '';
 PIn = find(strcmp(varargin, 'file'));
 if ~isempty(PIn)
     rtf = varargin{PIn+1};
+    if isobject(rtf), rtf = rtf.FileName; end
     cd(fileparts(rtf));
 end
 

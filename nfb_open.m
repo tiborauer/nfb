@@ -35,7 +35,7 @@ path_add;
 p = pwd;
 if ~nargin
     rtconfig = '';
-    d = dir('*rtconfig*');
+    d = dir('*rtc*');
     if ~isempty(d), rtconfig = fullfile(p, d(1).name); end
 end
 

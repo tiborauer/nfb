@@ -85,7 +85,7 @@ if ~strcmp(rtconfig.misc.plot_type,'no')
     set(hLeg,'IconDisplayStyle','off')
 
     % labels
-    DIST = 2*((max(-rtconfig.feedback.max_neg,rtconfig.feedback.max_pos))+1);  % distance between plots (even number only) = 2*(max_deviation+1)
+    DIST = 2*(ceil(max(-rtconfig.feedback.max_neg,rtconfig.feedback.max_pos))+1);  % distance between plots (even number only) = 2*(max_deviation+1)
     for ir = 1:nr
         ts_fig.(['p' int2str(ir)]) = plot(1:timepoints,yd,'-','LineWidth',1.5,'Color', ts_fig.colors(ir,:));
         if mvpc

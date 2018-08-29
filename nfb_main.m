@@ -38,11 +38,6 @@ try
             disp('Passed all sanity checks. Proceeding with analysis.');
     end
     
-    inp = inputdlg('Last Name (CBU*)','',1,{'PHANTOM'});
-    params.data.LastName = inp{1};
-    inp = inputdlg('Patient ID (MR*)','',1,{'RT_TEST'});
-    params.data.ID = inp{1};
-    
     % some variables get short alias
     volumes = rtconfig.timing.volumes;
     timeout = rtconfig.timing.timeout;
@@ -50,6 +45,7 @@ try
     out_dir = rtconfig.data.output_dir; if isempty(out_dir), out_dir = start_dir; end
     outfile = rtconfig.data.outfile;
     moco = rtconfig.preprocess.moco_yn;
+    moco_ref = rtconfig.preprocess.moco_ref;
     moco_del = rtconfig.preprocess.moco_del;
     smooth_fwhm = rtconfig.preprocess.smooth;
     
@@ -80,19 +76,15 @@ try
     % bring fb_control to front -> roi selection
     figure(ts_fig.fb_control);
     
-    % Enter the analysis directory
+    % output the analysis directory
     params.path.start_dir = pwd;
-    if ~isempty(rtconfig.data.watch_dir)
-        if strcmp(rtconfig.data.watch_dir,'net')
-            [ip,port] = pnet(params.data.watch.con,'gethost');
-            fprintf('Now processing volumes from host:%d.%d.%d.%d port: %d\n',ip,port);
-        elseif exist(rtconfig.data.watch_dir,'dir')
-            params.data.watch = rtconfig.data.watch_dir;
-            fprintf('Now changing working directory to %s\n',params.data.watch);
-%             cd(params.data.watch);
-        end
-    else
-        fprintf('Now processing files in directory %s\n',params.path.start_dir);
+    switch rtconfig.data.watch_mode
+        case {'RTExport' 'OnlineExport'}
+            fprintf('Now processing files in directory to %s\n',params.data.watch);
+        case 'DirectExport'
+            params.data.watch.WaitForConnection;
+            params.data.watch.TimeOut = timeout;
+            params.data.watch.Quiet = true; % no logging
     end
     
     if ~rtconfig.misc.run
@@ -101,8 +93,6 @@ try
     end
     
     if moco
-        moco_ref = rtconfig.preprocess.moco_ref;
-        
         % initialize spm_realign in case of external reference
         if ischar(moco_ref) && ~strcmp(moco_ref,'first') 
             if exist(moco_ref,'file')
@@ -147,14 +137,26 @@ try
         end
         
         if status, fprintf('Now waiting for volume %d: %6.3fs\n',n,etime(clock,params.clocks.volume)); end
-        if moco
-            if strcmp(rtconfig.data.watch_dir,'net')
-                [epi_hdr, current_epi, status, par] = nfb_ReadVol(n,moco,moco_ref,moco_del);
-            else
-%                 [epi_hdr, current_epi, status, par] = nfb_ReadVol_NW(n,timeout,moco,moco_ref,moco_del);
+        switch rtconfig.data.watch_mode
+            case 'RTExport'
+                [epi_hdr, current_epi, status, par] = nfb_ReadVol_ana(n,timeout,moco,moco_ref,moco_del);
+            case 'OnlineExport'
                 [epi_hdr, current_epi, status, par] = nfb_ReadVol_dcm(n,timeout,moco,moco_ref,moco_del);
+            case 'DirectExport'
+                [epi_hdr, current_epi, status, par] = nfb_ReadVol(n,moco,moco_ref,moco_del);
+        end
+        
+        if ~status 
+            if etime(clock,params.clocks.volume) > timeout
+                % delete moco volumes if requested
+                if (moco == 1) && moco_del
+                    delete('*_mc.hdr'); delete('*_mc.img');
+                end
+                nfb_close(sprintf('No volume arrived in %6.3f s',timeout),struct('GUI',false));
+                return
             end
-            if status
+        else
+            if moco
                 % SPM Realign Init
                 if isstruct(par)
                     moco_ref = par;
@@ -163,25 +165,8 @@ try
                     moco_list(n,:) = par;
                     params.reference.moco_par(n,1:6) = par(1:6);
                 end
-            end
-        else
-            if strcmp(rtconfig.data.watch_dir,'net')
-                [epi_hdr, current_epi, status] = nfb_ReadVol(n,moco);
-            else
-%                 [epi_hdr, current_epi, status] = nfb_ReadVol_NW(n,timeout,moco);
-                [epi_hdr, current_epi, status, par] = nfb_ReadVol_dcm(n,timeout,moco);
-            end
-        end
-        if ~status && etime(clock,params.clocks.volume) > timeout
-            % delete moco volumes if requested
-            if (moco == 1) && moco_del
-                delete('*_mc.hdr'); delete('*_mc.img');
-            end
-            nfb_close(sprintf('No volume arrived in %6.3f s',timeout),struct('GUI',false));
-            return
-        end
-        
-        if status
+            end            
+            
             volume_time = etime(clock,params.clocks.volume);
             params.clocks.volume = clock;
             params.clocks.proc = clock;

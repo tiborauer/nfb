@@ -111,30 +111,16 @@ end
 % perform motion correction
 moco = varargin{3};
 if moco
+%     img0 = img;    
     moco_ref = varargin{4};
-    if ischar(moco_ref) && strcmp(moco_ref,'first')
-       moco_ref = fullfile(DIR,sprintf('001_%06d_%06d.dcm',params.data.session,1));
-    end
-    
-    if ~isstruct(moco_ref) % initialize spm_realign
-        if exist(moco_ref,'file')
-            par = spm_realign_init(moco_ref);
-            par.write = ~varargin{5}; % moco_del
-            fprintf('Motion correction initialized.\n%s was set as reference scan.\nMotion correction was not made for this scan!\n', moco_ref);
-        else
-            fprintf('Reference scan (%s) for motion correction does not exist!\nNo motion correction can be made!\n', moco_ref);
-            par = 0;
-        end
-    else % run spm_realign
-        hdr.dat = img;
-        [img, P2] = spm_realign_fast(hdr,moco_ref);
-        % moco-parameters
-        par = spm_realign_eval(moco_ref,P2);
-        fprintf('Motion detected: %s\n', num2str(par));
-        %             if any(par(1:6) > 2)
-        %                 fprintf('Motion detected exceeds the limit! Motion correction is discarded.\n' );
-        %                 img = spm_read_vols(hdr);
-        %             end
-    end
+    hdr.dat = img;
+    [img, P2] = spm_realign_fast(hdr,moco_ref);
+    % moco-parameters
+    par = spm_realign_eval(moco_ref,P2);
+    fprintf('Motion detected: %s\n', num2str(par));
+%     if any(par(1:6) > 2)
+%         fprintf('Motion detected exceeds the limit! Motion correction is discarded.\n' );
+%         img = img0;
+%     end
 end
 % e.o.f.

@@ -35,7 +35,7 @@ d  = [size(V) 1 1];
 d  = d(1:3);
 ss = Inf;
 countdown = -1;
-for iter=1:128
+for iter=1:64,
 	[y1,y2,y3] = coords([0 0 0  0 0 0],mat1,P2.mat,x1,x2,x3);
 	msk        = find((y1>=1 & y1<=d(1) & y2>=1 & y2<=d(2) & y3>=1 & y3<=d(3)));
 	if length(msk)<32, error('ErrorTests:convertTest','There is not enough overlaping voxels.\nCheck orinetation!'); end;
@@ -109,8 +109,7 @@ return;
 %_______________________________________________________________________
 function [y1,y2,y3]=coords(p,M1,M2,x1,x2,x3)
 % Rigid body transformation of a set of coordinates.
-% M  = (inv(M2)*inv(spm_matrix(p))*M1);
-M  = M2\(spm_matrix(p)\M1);
+M  = (inv(M2)*inv(spm_matrix(p))*M1);
 y1 = M(1,1)*x1 + M(1,2)*x2 + M(1,3)*x3 + M(1,4);
 y2 = M(2,1)*x1 + M(2,2)*x2 + M(2,3)*x3 + M(2,4);
 y3 = M(3,1)*x1 + M(3,2)*x2 + M(3,3)*x3 + M(3,4);

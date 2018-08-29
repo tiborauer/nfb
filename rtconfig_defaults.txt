@@ -13,8 +13,12 @@ timeout[n]=60
 TR[n]=2
 
 [DATA]
-% net - TCP, watch directory (where Analyze files are put during analysis)
-watch_dir[s]=net
+% watch mode (RTExport - Siemens+Weiskopf (Analyize), OnlineExport - Siemens (DICOM), DirectExport - binary (DICOM))
+watch_mode[s]=DirectExport
+% watch port command (extra command to enable RTExport)
+watch_portcommand[s]=xterm -bg black -fg yellow -T "From scanner" -geometry 100x16+0+0 -e /realtime/apps/cburealtime/watchport_scanner.py &
+% watch directory (where DICOM files are to be found)
+watch_dir[s]=/realtime/scratch/incoming
 % transfer directory (where Analyze files are transfered after analysis)
 tr_dir[s]=none
 % ROI definition mode
@@ -52,8 +56,8 @@ mv_Percent[n]=1
 mv_bg[n]=2
 
 [PREPROCESS]
-% motion correction: No - 0, SPM Realign - 2
-moco_yn[n]=2
+% motion correction: No - 0, Yes (SPM Realign) - 1
+moco_yn[n]=1
 moco_ref[s]=/imaging/ta02/NFB/sample/vol_6306/loc/Analyze00001.hdr
 % need for motion corrected files: Yes - 0, No - 1
 moco_del[n]=1
